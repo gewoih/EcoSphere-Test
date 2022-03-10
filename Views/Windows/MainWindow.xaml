@@ -4,9 +4,23 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:EcoSphere_Test"
+		xmlns:vm="clr-namespace:EcoSphere_Test.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
+	<Window.DataContext>
+		<vm:MainViewModel/>
+	</Window.DataContext>
+	
     <Grid>
-
-    </Grid>
+		<Grid.RowDefinitions>
+			<RowDefinition Height="Auto"/>
+			<RowDefinition/>
+		</Grid.RowDefinitions>
+		
+		<TabControl Grid.Row="0" BorderThickness="1">
+			<TabItem Header="Задание 1" Content="{Binding DailyQuotesView}"/>
+			<TabItem Header="Задание 2" Content="{Binding HourlyQuotesView}"/>
+			<TabItem Header="Задание 3" Content="{Binding DiffCheckerView}"/>
+		</TabControl>
+	</Grid>
 </Window>

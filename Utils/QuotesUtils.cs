@@ -1,4 +1,5 @@
 ﻿using EcoSphere_Test.Models;
+using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -8,56 +9,118 @@ namespace EcoSphere_Test.Utils
 {
 	public static class QuotesUtils
 	{
-		public static IEnumerable<Quote> LoadQuotesFromFile(string path)
+		public static IEnumerable<Quote> LoadQuotesFromFile()
 		{
 			//Коллекция котировок, полученных из текстового файла
 			ICollection<Quote> parsedQuotes = new List<Quote>();
 
-			//Создаем поток для чтения текстового файла
-			using (StreamReader reader = new(path))
-			{
-				for (string? line = reader.ReadLine(); line != null; line = reader.ReadLine())
-				{
-					//Разделяем текущую строку на массив строк (параметров)
-					string[] quoteParameters = line.Split(',');
+			//Создаем диалоговое окно для выбора текстового файла с котировками
+			OpenFileDialog fileDialog = new OpenFileDialog();
+			fileDialog.Title = "Обзор файла с котировками";
+			fileDialog.Filter = "Текстовые файлы (.txt) | *.txt";
 
-					try
+			//Если файл успешно выбран
+			if ((bool)fileDialog.ShowDialog())
+			{
+				//Создаем поток для чтения текстового файла
+				using (StreamReader reader = new(fileDialog.FileName))
+				{
+					for (string? line = reader.ReadLine(); line != null; line = reader.ReadLine())
 					{
-						//Заполняем все необходимые переменные
-						string symbol = Convert.ToString(quoteParameters[0], CultureInfo.InvariantCulture);
-						string description = Convert.ToString(quoteParameters[1], CultureInfo.InvariantCulture);
-						DateTime date = DateTime.ParseExact(quoteParameters[2], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-						TimeSpan time = TimeSpan.Parse(quoteParameters[3], CultureInfo.InvariantCulture);
-						decimal open = Convert.ToDecimal(quoteParameters[4], CultureInfo.InvariantCulture);
-						decimal high = Convert.ToDecimal(quoteParameters[5], CultureInfo.InvariantCulture);
-						decimal low = Convert.ToDecimal(quoteParameters[6], CultureInfo.InvariantCulture);
-						decimal close = Convert.ToDecimal(quoteParameters[7], CultureInfo.InvariantCulture);
-						int totalVolume = Convert.ToInt32(quoteParameters[8], CultureInfo.InvariantCulture);
-						
-						//Добавляем новую котировку в список
-						parsedQuotes.Add(new Quote(symbol, description, date, time, open, high, low, close, totalVolume));
-					}
-					catch
-					{
-						continue;
+						//Разделяем текущую строку на массив строк (параметров)
+						string[] quoteParameters = line.Split(',');
+
+						try
+						{
+							//Заполняем все необходимые переменные
+							string symbol = Convert.ToString(quoteParameters[0], CultureInfo.InvariantCulture);
+							string description = Convert.ToString(quoteParameters[1], CultureInfo.InvariantCulture);
+							DateTime date = DateTime.ParseExact(quoteParameters[2], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+							TimeSpan time = TimeSpan.Parse(quoteParameters[3], CultureInfo.InvariantCulture);
+							decimal open = Convert.ToDecimal(quoteParameters[4], CultureInfo.InvariantCulture);
+							decimal high = Convert.ToDecimal(quoteParameters[5], CultureInfo.InvariantCulture);
+							decimal low = Convert.ToDecimal(quoteParameters[6], CultureInfo.InvariantCulture);
+							decimal close = Convert.ToDecimal(quoteParameters[7], CultureInfo.InvariantCulture);
+							int totalVolume = Convert.ToInt32(quoteParameters[8], CultureInfo.InvariantCulture);
+
+							//Добавляем новую котировку в список
+							parsedQuotes.Add(new Quote(symbol, description, date, time, open, high, low, close, totalVolume));
+						}
+						catch
+						{
+							continue;
+						}
 					}
 				}
 			}
 			return parsedQuotes;
 		}
 
-		public static bool SaveQuotesToFile(ICollection<Quote> quotes, string path)
+		public static bool SaveQuotesToFile(ICollection<Quote> quotes)
 		{
-			if (String.IsNullOrEmpty(path))
-				return false;
+			//Сохраняем получившийся список котировок
+			SaveFileDialog fileDialog = new SaveFileDialog();
+			fileDialog.Title = "Сохранение файла с котировками";
+			fileDialog.Filter = "Текстовые файлы (.txt) | *.txt";
 
-			using (StreamWriter writer = new StreamWriter(path))
+			try
 			{
-				foreach (Quote quote in quotes)
-					writer.WriteLine(quote);
+				if ((bool)fileDialog.ShowDialog())
+				{
+					using (StreamWriter writer = new StreamWriter(fileDialog.FileName))
+					{
+						foreach (Quote quote in quotes)
+							writer.WriteLine(quote);
+					}
+				}
+			}
+			catch
+			{
+				return false;
 			}
 
 			return true;
+		}
+
+		//Нахождение максимальной котировки
+		public static Quote GetMaxQuote(IList<Quote> quotes)
+		{
+			if (quotes == null || quotes.Count == 0)
+				return null;
+
+			Quote maxQuote = quotes[0];
+			foreach (Quote quote in quotes)
+			{
+				if (quote.High > maxQuote.High)
+					maxQuote = quote;
+			}
+			return maxQuote;
+		}
+
+		//Нахождение минимальной котировки
+		public static Quote GetMinQuote(IList<Quote> quotes)
+		{
+			if (quotes == null || quotes.Count == 0)
+				return null;
+
+			Quote minQuote = quotes[0];
+			foreach (Quote quote in quotes)
+			{
+				if (quote.Low < minQuote.Low)
+					minQuote = quote;
+			}
+			return minQuote;
+		}
+
+		//Общий объем всех котировок
+		public static int GetTotalVolume(IList<Quote> quotes)
+		{
+			int totalVolume = 0;
+			foreach(Quote quote in quotes)
+			{
+				totalVolume += quote.TotalVolume;
+			}
+			return totalVolume;
 		}
 	}
 }

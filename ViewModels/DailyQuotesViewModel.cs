@@ -2,13 +2,10 @@
 using EcoSphere_Test.Models;
 using EcoSphere_Test.Utils;
 using EcoSphere_Test.ViewModels.Base;
-using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Globalization;
-using System.IO;
 using System.Reflection;
 using System.Windows;
 using System.Windows.Input;
@@ -48,31 +45,14 @@ namespace EcoSphere_Test.ViewModels
 		private bool CanLoadQuotesCommandExecute(object p) => true;
 		private void OnLoadQuotesCommandExecuted(object p)
 		{
-			//Создаем диалоговое окно для выбора текстового файла с котировками
-			OpenFileDialog fileDialog = new OpenFileDialog();
-			fileDialog.Title = "Обзор файла с котировками";
-			fileDialog.Filter = "Текстовые файлы (.txt) | *.txt";
+			//Вызываем метод для парсинга котировок из файла
+			this.LoadedQuotes = new ObservableCollection<Quote>(QuotesUtils.LoadQuotesFromFile());
 
-			//Если файл успешно выбран
-			if ((bool)fileDialog.ShowDialog())
-			{
-				//Вызываем метод для парсинга котировок из файла
-				this.LoadedQuotes = new ObservableCollection<Quote>(QuotesUtils.LoadQuotesFromFile(fileDialog.FileName));
+			//Формируем минимум и максимум по котировкам за каждый день
+			this.DailyMinMaxQuotes = new ObservableCollection<Quote>(this.AggregateMinMaxDailyQuotes(this.LoadedQuotes));
 
-				//Формируем минимум и максимум по котировкам за каждый день
-				this.DailyMinMaxQuotes = new ObservableCollection<Quote>(this.AggregateMinMaxDailyQuotes(this.LoadedQuotes));
-
-				//Сохраняем получившийся список котировок
-				SaveFileDialog saveFileDialog = new SaveFileDialog();
-				saveFileDialog.Title = "Сохранение файла с котировками";
-				saveFileDialog.Filter = "Текстовые файлы (.txt) | *.txt";
-
-				if ((bool)saveFileDialog.ShowDialog())
-				{
-					if (QuotesUtils.SaveQuotesToFile(this.DailyMinMaxQuotes, saveFileDialog.FileName))
-						MessageBox.Show("Файл успешно сохранен!");
-				}
-			}
+			if (QuotesUtils.SaveQuotesToFile(this.DailyMinMaxQuotes))
+				MessageBox.Show("Файл успешно сохранен!");
 		}
 		#endregion
 
@@ -83,8 +63,8 @@ namespace EcoSphere_Test.ViewModels
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
-			//Словарь для разбиения котировок по дням.
-			//Дата - ключ, List - список котировок за дату. Т.е. на одну дату может приходиться несколько котировок
+			//Словарь для разбиения котировок по дням
+			//Дата - ключ, List - список котировок за дату
 			Dictionary<DateTime, List<Quote>> aggregatedDailyQuotes = new();
 			foreach(Quote quote in quotes)
 			{
@@ -100,7 +80,11 @@ namespace EcoSphere_Test.ViewModels
 			foreach (var dailyQuotes in aggregatedDailyQuotes)
 			{
 				//Находим пару максимальная-минимальная котировка и добавляем их в итоговый список
-				Tuple<Quote, Quote> maxMinQuotesPair = this.FindMaxMinQuote(dailyQuotes.Value);
+				Tuple<Quote, Quote> maxMinQuotesPair = 
+					new Tuple<Quote, Quote>(
+						QuotesUtils.GetMaxQuote(dailyQuotes.Value),
+						QuotesUtils.GetMinQuote(dailyQuotes.Value));
+
 				maxMinQuotes.Add(maxMinQuotesPair.Item1);
 				maxMinQuotes.Add(maxMinQuotesPair.Item2);
 			}
@@ -110,32 +94,6 @@ namespace EcoSphere_Test.ViewModels
 				$"(Вход: {quotes.Count}; Выход: {aggregatedDailyQuotes.Count}): {sw.ElapsedMilliseconds}мс.");
 
 			return maxMinQuotes;
-		}
-
-		//Нахождение пары максимальная-минимальная котировка
-		private Tuple<Quote, Quote> FindMaxMinQuote(IList<Quote> quotes)
-		{
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
-
-			if (quotes == null || quotes.Count == 0)
-				return null;
-
-			Quote maxQuote = quotes[0];
-			Quote minQuote = quotes[0];
-			foreach (Quote quote in quotes)
-			{
-				if (quote.High > maxQuote.High)
-					maxQuote = quote;
-
-				if (quote.Low < minQuote.Low)
-					minQuote = quote;
-			}
-
-			sw.Stop();
-			Debug.WriteLine($"{MethodBase.GetCurrentMethod().Name} ({quotes.Count} элементов): {sw.ElapsedMilliseconds}мс.");
-
-			return new Tuple<Quote, Quote>(maxQuote, minQuote);
 		}
 		#endregion
 	}

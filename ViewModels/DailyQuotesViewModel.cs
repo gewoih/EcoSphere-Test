@@ -54,7 +54,7 @@ namespace EcoSphere_Test.ViewModels
 			//Если файл успешно выбран
 			if ((bool)fileDialog.ShowDialog())
 			{
-				//Вызываем метод для парсинга котировок в оригинальном виде
+				//Вызываем метод для парсинга котировок из файла
 				this.LoadedQuotes = new ObservableCollection<Quote>(this.ParseQuotes(fileDialog.FileName));
 
 				//Формируем минимум и максимум по котировкам за каждый день
@@ -67,6 +67,7 @@ namespace EcoSphere_Test.ViewModels
 		#endregion
 
 		#region Methods
+		//Формирование списка максимальных-минимальных котировок по дням
 		private IEnumerable<Quote> AggregateMinMaxDailyQuotes(ICollection<Quote> quotes)
 		{
 			Stopwatch sw = new Stopwatch();
@@ -101,6 +102,7 @@ namespace EcoSphere_Test.ViewModels
 			return maxMinQuotes;
 		}
 
+		//Чтение котировок из файла по заданному пути
 		private IEnumerable<Quote> ParseQuotes(string path)
 		{
 			Stopwatch sw = new Stopwatch();
@@ -146,6 +148,7 @@ namespace EcoSphere_Test.ViewModels
 			return parsedQuotes;
 		}
 
+		//Нахождение пары максимальная-минимальная котировка
 		private Tuple<Quote, Quote> FindMaxMinQuote(IList<Quote> quotes)
 		{
 			Stopwatch sw = new Stopwatch();
@@ -171,6 +174,7 @@ namespace EcoSphere_Test.ViewModels
 			return new Tuple<Quote, Quote>(maxQuote, minQuote);
 		}
 
+		//Сохранение списка котировок в текстовый файл
 		private void SaveQuotesToFile(ICollection<Quote> quotes)
 		{
 			Stopwatch sw = new Stopwatch();

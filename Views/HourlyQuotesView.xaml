@@ -4,9 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:local="clr-namespace:EcoSphere_Test.Views"
+			 xmlns:vm="clr-namespace:EcoSphere_Test.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
-            
-    </Grid>
+	
+	<UserControl.DataContext>
+		<vm:HourlyQuotesViewModel/>
+	</UserControl.DataContext>
+
+	<Grid>
+		<Button Content="[Задание 2] Выбрать файл" FontSize="20" Command="{Binding LoadQuotesCommand}"/>
+	</Grid>
 </UserControl>

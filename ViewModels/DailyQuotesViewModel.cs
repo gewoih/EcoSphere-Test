@@ -1,5 +1,6 @@
 ﻿using EcoSphere_Test.Commands;
 using EcoSphere_Test.Models;
+using EcoSphere_Test.Utils;
 using EcoSphere_Test.ViewModels.Base;
 using Microsoft.Win32;
 using System;
@@ -9,6 +10,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Reflection;
+using System.Windows;
 using System.Windows.Input;
 
 namespace EcoSphere_Test.ViewModels
@@ -55,13 +57,21 @@ namespace EcoSphere_Test.ViewModels
 			if ((bool)fileDialog.ShowDialog())
 			{
 				//Вызываем метод для парсинга котировок из файла
-				this.LoadedQuotes = new ObservableCollection<Quote>(this.ParseQuotes(fileDialog.FileName));
+				this.LoadedQuotes = new ObservableCollection<Quote>(QuotesUtils.LoadQuotesFromFile(fileDialog.FileName));
 
 				//Формируем минимум и максимум по котировкам за каждый день
 				this.DailyMinMaxQuotes = new ObservableCollection<Quote>(this.AggregateMinMaxDailyQuotes(this.LoadedQuotes));
 
 				//Сохраняем получившийся список котировок
-				this.SaveQuotesToFile(this.DailyMinMaxQuotes);
+				SaveFileDialog saveFileDialog = new SaveFileDialog();
+				saveFileDialog.Title = "Сохранение файла с котировками";
+				saveFileDialog.Filter = "Текстовые файлы (.txt) | *.txt";
+
+				if ((bool)saveFileDialog.ShowDialog())
+				{
+					if (QuotesUtils.SaveQuotesToFile(this.DailyMinMaxQuotes, saveFileDialog.FileName))
+						MessageBox.Show("Файл успешно сохранен!");
+				}
 			}
 		}
 		#endregion
@@ -102,52 +112,6 @@ namespace EcoSphere_Test.ViewModels
 			return maxMinQuotes;
 		}
 
-		//Чтение котировок из файла по заданному пути
-		private IEnumerable<Quote> ParseQuotes(string path)
-		{
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
-
-			//Коллекция котировок, полученных из текстового файла
-			ICollection<Quote> parsedQuotes = new List<Quote>();
-
-			//Создаем поток для чтения текстового файла
-			using (StreamReader reader = new(path))
-			{
-				for (string? line = reader.ReadLine(); line != null; line = reader.ReadLine())
-				{
-					//Разделяем текущую строку на массив строк (параметров)
-					string[] quoteParameters = line.Split(',');
-
-					try
-					{
-						//Заполняем все необходимые переменные
-						string symbol = Convert.ToString(quoteParameters[0], CultureInfo.InvariantCulture);
-						string description = Convert.ToString(quoteParameters[1], CultureInfo.InvariantCulture);
-						DateTime date = DateTime.ParseExact(quoteParameters[2], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-						TimeSpan time = TimeSpan.Parse(quoteParameters[3], CultureInfo.InvariantCulture);
-						decimal open = Convert.ToDecimal(quoteParameters[4], CultureInfo.InvariantCulture);
-						decimal high = Convert.ToDecimal(quoteParameters[5], CultureInfo.InvariantCulture);
-						decimal low = Convert.ToDecimal(quoteParameters[6], CultureInfo.InvariantCulture);
-						decimal close = Convert.ToDecimal(quoteParameters[7], CultureInfo.InvariantCulture);
-						int totalVolume = Convert.ToInt32(quoteParameters[8], CultureInfo.InvariantCulture);
-
-						//Добавляем новую котировку в список
-						parsedQuotes.Add(new Quote(symbol, description, date, time, open, high, low, close, totalVolume));
-					}
-					catch
-					{
-						continue;
-					}
-				}
-			}
-
-			sw.Stop();
-			Debug.WriteLine($"{MethodBase.GetCurrentMethod().Name} ({parsedQuotes.Count} элементов): {sw.ElapsedMilliseconds}мс.");
-
-			return parsedQuotes;
-		}
-
 		//Нахождение пары максимальная-минимальная котировка
 		private Tuple<Quote, Quote> FindMaxMinQuote(IList<Quote> quotes)
 		{
@@ -172,31 +136,6 @@ namespace EcoSphere_Test.ViewModels
 			Debug.WriteLine($"{MethodBase.GetCurrentMethod().Name} ({quotes.Count} элементов): {sw.ElapsedMilliseconds}мс.");
 
 			return new Tuple<Quote, Quote>(maxQuote, minQuote);
-		}
-
-		//Сохранение списка котировок в текстовый файл
-		private void SaveQuotesToFile(ICollection<Quote> quotes)
-		{
-			Stopwatch sw = new Stopwatch();
-			sw.Start();
-
-			//Создаем диалоговое окно для сохранения файла
-			SaveFileDialog fileDialog = new SaveFileDialog();
-			fileDialog.Title = "Сохранение файла с котировками";
-			fileDialog.Filter = "Текстовые файлы (.txt) | *.txt";
-
-			if ((bool)fileDialog.ShowDialog())
-			{
-				using (StreamWriter writer = new StreamWriter(fileDialog.FileName))
-				{
-					//Спокойно записываем котировку в виде строки, т.к. у нее перегружен метод ToString()
-					foreach (Quote quote in quotes)
-						writer.WriteLine(quote);
-				}
-			}
-
-			sw.Stop();
-			Debug.WriteLine($"{MethodBase.GetCurrentMethod().Name} ({quotes.Count} элементов): {sw.ElapsedMilliseconds}мс.");
 		}
 		#endregion
 	}

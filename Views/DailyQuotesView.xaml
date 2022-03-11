@@ -10,9 +10,8 @@
 	<UserControl.DataContext>
 		<vm:DailyQuotesViewModel/>
 	</UserControl.DataContext>
-	
-	<Grid>
 
-		<Button Content="Загрузить файл" FontSize="20" Width="250" Height="100" Command="{Binding LoadQuotesCommand}"/>
+	<Grid>
+		<Button Content="[Задание 1] Выбрать файл" FontSize="20" Command="{Binding LoadQuotesCommand}"/>
 	</Grid>
 </UserControl>

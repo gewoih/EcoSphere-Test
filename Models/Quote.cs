@@ -27,5 +27,19 @@ namespace EcoSphere_Test.Models
 		public decimal Low { get; }
 		public decimal Close { get; }
 		public int TotalVolume { get; }
+
+		public override string ToString()
+		{
+			return 
+				$"{this.Symbol}," +
+				$"{this.Description}," +
+				$"{this.Date.ToString("dd.MM.yyyy")}," +
+				$"{this.Time}," +
+				$"{this.Open}," +
+				$"{this.High}," +
+				$"{this.Low}," +
+				$"{this.Close}," +
+				$"{this.TotalVolume}";
+		}
 	}
 }

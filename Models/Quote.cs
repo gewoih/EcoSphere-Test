@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 
 namespace EcoSphere_Test.Models
 {
@@ -30,15 +31,18 @@ namespace EcoSphere_Test.Models
 
 		public override string ToString()
 		{
+			var culture = CultureInfo.InvariantCulture.Clone() as CultureInfo;
+			culture.NumberFormat.NumberGroupSeparator = ".";
+
 			return 
 				$"{this.Symbol}," +
 				$"{this.Description}," +
 				$"{this.Date.ToString("dd.MM.yyyy")}," +
 				$"{this.Time}," +
-				$"{this.Open}," +
-				$"{this.High}," +
-				$"{this.Low}," +
-				$"{this.Close}," +
+				$"{this.Open.ToString(CultureInfo.GetCultureInfo("en-US"))}," +
+				$"{this.High.ToString(CultureInfo.GetCultureInfo("en-US"))}," +
+				$"{this.Low.ToString(CultureInfo.GetCultureInfo("en-US"))}," +
+				$"{this.Close.ToString(CultureInfo.GetCultureInfo("en-US"))}," +
 				$"{this.TotalVolume}";
 		}
 	}

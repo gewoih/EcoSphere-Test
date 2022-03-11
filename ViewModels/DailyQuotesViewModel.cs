@@ -84,6 +84,7 @@ namespace EcoSphere_Test.ViewModels
 					aggregatedDailyQuotes.Add(quote.Date, new List<Quote> { quote });
 			}
 
+			//Создаем коллекцию максимальных и минимальных котировок размером в 2 раза больше коллекции, аггрегированной по дням (1 день - 2 котировки)
 			ICollection<Quote> maxMinQuotes = new List<Quote>(aggregatedDailyQuotes.Count * 2);
 			foreach (var dailyQuotes in aggregatedDailyQuotes)
 			{
@@ -116,19 +117,26 @@ namespace EcoSphere_Test.ViewModels
 					//Разделяем текущую строку на массив строк (параметров)
 					string[] quoteParameters = line.Split(',');
 
-					//Заполняем все необходимые переменные
-					string symbol = Convert.ToString(quoteParameters[0], CultureInfo.InvariantCulture);
-					string description = Convert.ToString(quoteParameters[1], CultureInfo.InvariantCulture);
-					DateTime date = DateTime.ParseExact(quoteParameters[2], "dd.MM.yyyy", CultureInfo.InvariantCulture);
-					TimeSpan time = TimeSpan.Parse(quoteParameters[3], CultureInfo.InvariantCulture);
-					decimal open = Convert.ToDecimal(quoteParameters[4], CultureInfo.InvariantCulture);
-					decimal high = Convert.ToDecimal(quoteParameters[5], CultureInfo.InvariantCulture);
-					decimal low = Convert.ToDecimal(quoteParameters[6], CultureInfo.InvariantCulture);
-					decimal close = Convert.ToDecimal(quoteParameters[7], CultureInfo.InvariantCulture);
-					int totalVolume = Convert.ToInt32(quoteParameters[8], CultureInfo.InvariantCulture);
+					try
+					{
+						//Заполняем все необходимые переменные
+						string symbol = Convert.ToString(quoteParameters[0], CultureInfo.InvariantCulture);
+						string description = Convert.ToString(quoteParameters[1], CultureInfo.InvariantCulture);
+						DateTime date = DateTime.ParseExact(quoteParameters[2], "dd.MM.yyyy", CultureInfo.InvariantCulture);
+						TimeSpan time = TimeSpan.Parse(quoteParameters[3], CultureInfo.InvariantCulture);
+						decimal open = Convert.ToDecimal(quoteParameters[4], CultureInfo.InvariantCulture);
+						decimal high = Convert.ToDecimal(quoteParameters[5], CultureInfo.InvariantCulture);
+						decimal low = Convert.ToDecimal(quoteParameters[6], CultureInfo.InvariantCulture);
+						decimal close = Convert.ToDecimal(quoteParameters[7], CultureInfo.InvariantCulture);
+						int totalVolume = Convert.ToInt32(quoteParameters[8], CultureInfo.InvariantCulture);
 
-					//Добавляем новую котировку в список
-					parsedQuotes.Add(new Quote(symbol, description, date, time, open, high, low, close, totalVolume));
+						//Добавляем новую котировку в список
+						parsedQuotes.Add(new Quote(symbol, description, date, time, open, high, low, close, totalVolume));
+					}
+					catch
+					{
+						continue;
+					}
 				}
 			}
 
@@ -168,6 +176,7 @@ namespace EcoSphere_Test.ViewModels
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
 
+			//Создаем диалоговое окно для сохранения файла
 			SaveFileDialog fileDialog = new SaveFileDialog();
 			fileDialog.Title = "Сохранение файла с котировками";
 			fileDialog.Filter = "Текстовые файлы (.txt) | *.txt";
@@ -176,6 +185,7 @@ namespace EcoSphere_Test.ViewModels
 			{
 				using (StreamWriter writer = new StreamWriter(fileDialog.FileName))
 				{
+					//Спокойно записываем котировку в виде строки, т.к. у нее перегружен метод ToString()
 					foreach (Quote quote in quotes)
 						writer.WriteLine(quote);
 				}

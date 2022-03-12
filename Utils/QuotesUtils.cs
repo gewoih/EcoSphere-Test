@@ -2,6 +2,7 @@
 using Microsoft.Win32;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 
@@ -48,6 +49,7 @@ namespace EcoSphere_Test.Utils
 						}
 						catch
 						{
+							Debug.WriteLine($"Не удалось считать строку '{line}'");
 							continue;
 						}
 					}
@@ -76,6 +78,7 @@ namespace EcoSphere_Test.Utils
 			}
 			catch
 			{
+				Debug.WriteLine($"Произошла ошибка при записи данных в файл '{fileDialog.FileName}'");
 				return false;
 			}
 

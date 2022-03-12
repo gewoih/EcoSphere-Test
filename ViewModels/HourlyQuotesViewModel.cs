@@ -4,7 +4,6 @@ using EcoSphere_Test.Utils;
 using EcoSphere_Test.ViewModels.Base;
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Reflection;
 using System.Windows;
@@ -17,26 +16,7 @@ namespace EcoSphere_Test.ViewModels
 		#region Constructor
 		public HourlyQuotesViewModel()
 		{
-			this.LoadedQuotes = new();
-			this.HourlyAggregatedQuotes = new();
-
 			this.LoadQuotesCommand = new RelayCommand(OnLoadQuotesCommandExecuted, CanLoadQuotesCommandExecute);
-		}
-		#endregion
-
-		#region Properties
-		private ObservableCollection<Quote> _LoadedQuotes;
-		public ObservableCollection<Quote> LoadedQuotes
-		{
-			get => _LoadedQuotes;
-			set => Set(ref _LoadedQuotes, value);
-		}
-
-		private ObservableCollection<Quote> _HourlyAggregatedQuotes;
-		public ObservableCollection<Quote> HourlyAggregatedQuotes
-		{
-			get => _HourlyAggregatedQuotes;
-			set => Set(ref _HourlyAggregatedQuotes, value);
 		}
 		#endregion
 
@@ -46,13 +26,15 @@ namespace EcoSphere_Test.ViewModels
 		private void OnLoadQuotesCommandExecuted(object p)
 		{
 			//Вызываем метод для парсинга котировок из файла
-			this.LoadedQuotes = new ObservableCollection<Quote>(QuotesUtils.LoadQuotesFromFile());
+			List<Quote> loadedQuotes = new List<Quote>(QuotesUtils.LoadQuotesFromFile());
 
 			//Формируем часовые котировки из исходных
-			this.HourlyAggregatedQuotes = new ObservableCollection<Quote>(this.AggregateHourlyQuotes(this.LoadedQuotes));
+			List<Quote> hourlyAggregatedQuotes = new List<Quote>(this.AggregateHourlyQuotes(loadedQuotes));
 
-			if (QuotesUtils.SaveQuotesToFile(this.HourlyAggregatedQuotes))
-				MessageBox.Show("Файл успешно сохранен!");
+			if (QuotesUtils.SaveQuotesToFile(hourlyAggregatedQuotes))
+				MessageBox.Show("Файл успешно сохранен.");
+			else
+				MessageBox.Show("При сохранении файла произошла ошибка!");
 		}
 		#endregion
 

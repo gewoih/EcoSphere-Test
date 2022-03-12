@@ -58,7 +58,7 @@ namespace EcoSphere_Test.Utils
 			return parsedQuotes;
 		}
 
-		public static bool SaveQuotesToFile(ICollection<Quote> quotes)
+		public static bool SaveQuotesToFile(IEnumerable<Quote> quotes)
 		{
 			//Сохраняем получившийся список котировок
 			SaveFileDialog fileDialog = new SaveFileDialog();
@@ -116,7 +116,7 @@ namespace EcoSphere_Test.Utils
 		}
 
 		//Общий объем всех котировок
-		public static int GetTotalVolume(IList<Quote> quotes)
+		public static int GetTotalVolume(IEnumerable<Quote> quotes)
 		{
 			int totalVolume = 0;
 			foreach(Quote quote in quotes)
@@ -124,6 +124,12 @@ namespace EcoSphere_Test.Utils
 				totalVolume += quote.TotalVolume;
 			}
 			return totalVolume;
+		}
+
+		public static int FindQuote(List<Quote> quotes, Quote targetQuote)
+		{
+			//Так как все котировки в списке гарантированно отсортированы, можем использовать бинарный поиск
+			return quotes.BinarySearch(targetQuote, new QuotesComparer());
 		}
 	}
 }

@@ -26,10 +26,10 @@ namespace EcoSphere_Test.ViewModels
 		private void OnLoadQuotesCommandExecuted(object p)
 		{
 			//Вызываем метод для парсинга котировок из файла
-			List<Quote> loadedQuotes = new List<Quote>(QuotesUtils.LoadQuotesFromFile());
+			List<Quote> loadedQuotes = new(QuotesUtils.LoadQuotesFromFile());
 
 			//Формируем минимум и максимум по котировкам за каждый день
-			List<Quote> dailyMinMaxQuotes = new List<Quote>(this.AggregateMinMaxDailyQuotes(loadedQuotes));
+			List<Quote> dailyMinMaxQuotes = new(this.AggregateMaxMinDailyQuotes(loadedQuotes));
 
 			if (QuotesUtils.SaveQuotesToFile(dailyMinMaxQuotes))
 				MessageBox.Show("Файл успешно сохранен.");
@@ -40,7 +40,7 @@ namespace EcoSphere_Test.ViewModels
 
 		#region Methods
 		//Формирование списка максимальных-минимальных котировок по дням
-		private IEnumerable<Quote> AggregateMinMaxDailyQuotes(ICollection<Quote> quotes)
+		private IEnumerable<Quote> AggregateMaxMinDailyQuotes(ICollection<Quote> quotes)
 		{
 			Stopwatch sw = new Stopwatch();
 			sw.Start();
